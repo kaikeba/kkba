@@ -38,8 +38,21 @@ kkba -F
 ```Shell
 kkba -h
 ```
-![enter description here](https://gitee.com/margan/pictures/raw/master/小书匠/1627449398278.png)
 
+```text
+爬虫生成器
+
+usage: kkba [options]
+
+optional arguments:
+  -F,               推荐: 将粘贴板curl或者url，生成feapder异步爬虫代码，相当于scrapy的用法
+  -s                将粘贴板curl或者url，生成scrapy单文件项目
+  -f,               将粘贴板curl或者url，生成feapder同步爬虫代码，相当于requests的用法
+  -r,               将粘贴板curl或者url，生成requests爬虫代码
+  -h, --help        帮助文档
+  -v, --version     查看版本
+
+```
 ### Genrates feapder spider code
 ```shell
 # install fepader
