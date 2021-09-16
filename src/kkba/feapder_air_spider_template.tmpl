@@ -1,0 +1,116 @@
+# -*- coding: utf-8 -*-
+"""
+kkba generator this file
+kkba doucment: https://github.com/kaikeba/kkba
+"""
+
+import time
+
+import feapder
+from feapder import Item
+from feapder.utils.log import log
+from feapder.utils.tools import make_item
+
+# from kkba.proxy import Proxy
+
+# p = Proxy(crawlerType='requests', proxyType='xxx', username='xxx', password='xxx')
+# proxies = p.get_proxy()
+
+
+class ${spider_name}(feapder.AirSpider):
+    # 自定义配置，若项目中有setting.py文件，此自定义可删除，此自定义优先级高于settings.py
+    __custom_setting__ = dict(
+        # 开启mongo数据库（默认是开启mysql）feapder默认读取环境变量中的数据库信息，比如 ~/.bash_profile
+        # ITEM_PIPELINES=["feapder.pipelines.mongo_pipeline.MongoPipeline"],
+
+        # SPIDER
+        SPIDER_THREAD_COUNT=1,  # 爬虫并发数
+        SPIDER_SLEEP_TIME=[0.2, 0.5],  # 设置为0,不延时，下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
+        SPIDER_MAX_RETRY_TIMES=100,  # 每个请求最大重试次数
+        REQUEST_TIMEOUT=22,   # 延迟
+        LOG_LEVEL='INFO',  # 默认为DEBUG
+
+        # # 设置代理
+        # PROXY_EXTRACT_API=None,  # 代理提取API ，返回的代理分割符为\r\ngenu
+        # PROXY_ENABLE=True
+
+        # 去重
+        # ITEM_FILTER_ENABLE=True,  # item 去重
+        # REQUEST_FILTER_ENABLE=True,  # request 去重
+
+        # selenium渲染打开这个
+        # WEBDRIVER=dict(
+        #     pool_size=2,  # 浏览器的数量
+        #     load_images=False,  # 是否加载图片
+        # user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/'
+        #            '92.0.4515.131 Safari/537.36',
+        #     # 字符串 或 无参函数，返回值为user_agent
+        #     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
+        #     headless=True,  # 是否为无头浏览器
+        #     driver_type="CHROME",  # CHROME、PHANTOMJS、FIREFOX
+        #     timeout=30,  # 请求超时时间
+        #     window_size=(1024, 800),  # 窗口大小
+        #     executable_path='/Users/kk_jiang/PycharmProjects/kkb/others/public/chromedriver',  # 浏览器路径，默认为默认路径
+        #     render_time=20,  # 渲染时长，即打开网页等待指定时间后再获取源码
+        #     custom_argument=["--ignore-certificate-errors"],  # 自定义浏览器渲染参数
+        # )
+    )
+
+    failed_num = 0
+    failed_max_retry_num = 0
+    start_time = 0
+
+    def start_requests(self):
+${params}
+    def parse(self, request, response):
+        print(response.text)
+
+        # item_pre = {}
+        # yield self.create_item(item_pre)
+
+    def create_item(self, item_pre):
+        item = make_item(Item, item_pre)
+        item.table_name = '${spider_name_l}'
+        # item.unique_key = ['exam_type', 'exam_name', 'exam_place']
+
+        return item
+
+    def download_midware(self, request):
+        """可以在这里设置代理，headers，cookies等"""
+        # request.proxies = proxies
+${request}
+        return request
+
+    def validate(self, request, response):
+        # 这里添加validate函数，就不用在parse里面判断status_code了，no responsel.ok 不会进入parse中，会重试
+        if response.status_code != 200:
+            raise Exception("status code is not 200")  # 重试
+
+        # if "哈哈" not in response.text:
+        #     return False # 抛弃当前请求
+
+    def exception_request(self, request, response):
+        # 异常请求处理
+        self.failed_num += 1
+        log.error("error request: %s", request)
+        yield request
+
+    def failed_request(self, request, response):
+        # 超过最大重试次数处理函数， 可以将错误的请求存放到redis中
+        self.failed_max_retry_num += 1
+        log.error('This request exceeds the maximum number of failures: %s', request)
+        yield request
+
+    def start_callback(self):
+        self.start_time = time.time()
+        log.info('spider is begin:')
+
+    def end_callback(self):
+        log.info('spider is end')
+        log.info("total time: {}".format(time.time()-self.start_time))
+        log.info("failed_number:{}, failed_max_retry_num:{}".format(self.failed_num, self.failed_max_retry_num))
+
+
+if __name__ == "__main__":
+    # ${spider_name}(redis_key="feapder:${spider_name_l}").start()  # 采集
+    ${spider_name}().start()

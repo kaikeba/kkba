@@ -1,0 +1,94 @@
+# -*- coding: utf-8 -*-
+"""
+kkba generates this file
+scrapy document： https://docs.scrapy.org/en/latest/
+kkba doucment: https://github.com/kaikeba/kkba
+"""
+
+import scrapy
+from scrapy.core.downloader.handlers.http11 import TunnelError
+from scrapy.crawler import CrawlerProcess
+# exception type:
+from scrapy.spidermiddlewares.httperror import HttpError
+from scrapy.utils.response import response_status_message  # get error info
+from twisted.internet.error import DNSLookupError
+from twisted.internet.error import TimeoutError, TCPTimedOutError, ConnectionRefusedError
+from twisted.web._newclient import ResponseFailed, ResponseNeverReceived
+
+
+class ${spider_name}(scrapy.Spider):
+    name = ${spider_name_l}
+
+    def start_requests(self):
+${params}
+    def parse(self, response):
+        print(response.text)
+
+    def errback_httpbin(self, failure):
+        # log all failures
+        self.logger.error(repr(failure))
+        # self.r.sadd('juliang_retry_5_times_error', kw)
+
+        # in case you want to do something special for some errors,
+        # you may need the failure's type:
+
+        if failure.check(HttpError):
+            # these exceptions come from HttpError spider middleware
+            # you can get the non-200 response
+            response = failure.value.response
+            self.logger.error('HttpError on %s', response.url)
+
+        elif failure.check(DNSLookupError):
+            # this is the original request
+            response = failure.value.response
+            request = failure.request
+            self.logger.error('DNSLookupError on %s, %s', request.url, response_status_message(response.status))
+
+        elif failure.check(TimeoutError, TCPTimedOutError):
+            request = failure.request
+            self.logger.error('TimeoutError on %s', request.url)
+        elif failure.check(TunnelError):
+            request = failure.request
+            self.logger.error('TunnelError on %s', request)
+
+        elif failure.check(ResponseFailed):
+            request = failure.request
+            self.logger.error('ResponseFailed on %s', request.url)
+
+        elif failure.check(ConnectionRefusedError):
+            request = failure.request
+            self.logger.error('ConnectionRefusedError on %s' % request.url)
+
+        elif failure.check(ResponseNeverReceived):
+            request = failure.request
+            self.logger.error('ResponseNeverReceived on %s' % request.url)
+        else:
+            request = failure.request
+            self.logger.error('Other Error on %s', request.url)
+
+    def __del__(self):
+        pass
+
+
+def start_spider():
+    p = CrawlerProcess({
+        'USER_AGENT': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.146 Safari/537.36',
+        'LOG_LEVEL': 'DEBUG',  # DEBUG , INFO , WARNING , ERROR , CRITICAL
+        # 'RANDOMIZE_DOWNLOAD_DELAY': True,  # 0.5*DOWNLOAD_DELAY---1.5*DOWNLOAD_DELAY
+        # 'DOWNLOAD_DELAY': 0.05,  # 全局下载延迟，这个配置相较于其他的节流配置要直观很多
+        'RETRY_ENABLED': True,
+        'RETRY_TIMES': 5,
+        'ROBOTSTXT_OBEY': False
+    })
+    # crawl_threads = Process(target=p.crawl, args=(JuliSpider,))
+    # crawl_threads.start()
+
+    p.crawl(${spider_name})
+    p.start()
+    # return 'data generate success!'
+
+
+if __name__ == "__main__":
+    start_spider()
+
+
