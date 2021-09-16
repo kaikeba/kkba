@@ -32,7 +32,7 @@ kkba [options]
 kkba -F
 ```
 
-![sample graph](https://everpic.oss-cn-beijing.aliyuncs.com/kkba_0.8.13_s4.gif "sample graph")
+![sample graph](https://everpic.oss-cn-beijing.aliyuncs.com/kkba-s4-ezgif.com-gif-maker.gif "sample graph")
 
 ## Help Document
 ```Shell
